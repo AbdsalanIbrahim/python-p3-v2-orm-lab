@@ -28,9 +28,7 @@ class Employee:
         if isinstance(name, str) and len(name):
             self._name = name
         else:
-            raise ValueError(
-                "Name must be a non-empty string"
-            )
+            raise ValueError("Name must be a non-empty string")
 
     @property
     def job_title(self):
@@ -41,9 +39,7 @@ class Employee:
         if isinstance(job_title, str) and len(job_title):
             self._job_title = job_title
         else:
-            raise ValueError(
-                "job_title must be a non-empty string"
-            )
+            raise ValueError("job_title must be a non-empty string")
 
     @property
     def department_id(self):
@@ -54,8 +50,7 @@ class Employee:
         if type(department_id) is int and Department.find_by_id(department_id):
             self._department_id = department_id
         else:
-            raise ValueError(
-                "department_id must reference a department in the database")
+            raise ValueError("department_id must reference a department in the database")
 
     @classmethod
     def create_table(cls):
@@ -179,7 +174,7 @@ class Employee:
         sql = """
             SELECT *
             FROM employees
-            WHERE name is ?
+            WHERE name = ?
         """
 
         row = CURSOR.execute(sql, (name,)).fetchone()
@@ -187,4 +182,23 @@ class Employee:
 
     def reviews(self):
         """Return list of reviews associated with current employee"""
-        pass
+        from review import Review  # Importing Review class here to avoid circular imports
+
+        sql = """
+            SELECT *
+            FROM reviews
+            WHERE employee_id = ?
+        """
+        CURSOR.execute(sql, (self.id,))
+        rows = CURSOR.fetchall()
+
+        # Debugging output to ensure reviews are being fetched
+        if not rows:  # If no rows were found
+            print(f"No reviews found for Employee ID: {self.id}")
+
+        reviews = []
+        for row in rows:
+            review = Review.instance_from_db(row)
+            reviews.append(review)
+
+        return reviews
